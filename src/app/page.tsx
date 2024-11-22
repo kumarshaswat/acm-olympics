@@ -10,11 +10,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 
 export default function Home() {
   const [isOpen, setIsOpen] = useState(true)
-  const [username, setUsername] = useState("")
-  const [fname, setFname] = useState("")
-  const [lname, setLname] = useState("")
-  const [phone, setPhone] = useState("")
-  const [diet, setDiet] = useState("")
+  const [formData, setFormData] = useState({
+    net_id: "",
+    fname: "",
+    lname: "",
+    phone_number: "",
+    diet: "",
+  })
   const [error, setError] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
@@ -27,24 +29,36 @@ export default function Home() {
     { value: "halal", label: "Halal" },
   ]
 
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleChange = (e: { target: { name: any; value: any } }) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value })
+  }
+
+  const handleSelectChange = (value: any) => {
+    setFormData({ ...formData, diet: value })
+  }
+
+  const handleSubmit = async (e: { preventDefault: () => void }) => {
     e.preventDefault()
     setError("")
     setIsLoading(true)
 
     try {
-      // Simulating an API call
-      await new Promise(resolve => setTimeout(resolve, 1000))
+      const response = await fetch("/api/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      })
 
-      // For demo purposes, let's consider the login successful if both fields are filled
-      if (username) {
+      const data = await response.json()
+
+      if (response.ok) {
         setIsOpen(false)
-        router.push("/dashboard") // Redirect to dashboard after successful login
+        router.push("/Dashboard")
       } else {
-        setError("Invalid username")
+        setError(data.error || "Something went wrong.")
       }
     } catch (err) {
-      setError("An error occurred. Please try again.")
+      setError("Failed to register.")
     } finally {
       setIsLoading(false)
     }
@@ -54,48 +68,52 @@ export default function Home() {
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Login to Your Account</DialogTitle>
+          <DialogTitle>Register Your Account</DialogTitle>
           <DialogDescription>
-            Enter your credentials to access the application.
+            Fill in the form to create your account.
           </DialogDescription>
         </DialogHeader>
-        <form onSubmit={handleLogin} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="username">Username</Label>
+            <Label htmlFor="net_id">net_id</Label>
             <Input
-              id="username"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
+              id="net_id"
+              name="net_id"
+              value={formData.net_id}
+              onChange={handleChange}
               required
               disabled={isLoading}
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="username">First Name</Label>
+            <Label htmlFor="fname">First Name</Label>
             <Input
-              id="username"
-              value={fname}
-              onChange={(e) => setFname(e.target.value)}
+              id="fname"
+              name="fname"
+              value={formData.fname}
+              onChange={handleChange}
               required
               disabled={isLoading}
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="username">Last Name</Label>
+            <Label htmlFor="lname">Last Name</Label>
             <Input
-              id="username"
-              value={lname}
-              onChange={(e) => setLname(e.target.value)}
+              id="lname"
+              name="lname"
+              value={formData.lname}
+              onChange={handleChange}
               required
               disabled={isLoading}
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="username">Phone Number</Label>
+            <Label htmlFor="phone_number">Phone Number</Label>
             <Input
-              id="username"
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
+              id="phone_number"
+              name="phone_number"
+              value={formData.phone_number}
+              onChange={handleChange}
               required
               disabled={isLoading}
             />
@@ -103,8 +121,8 @@ export default function Home() {
           <div className="space-y-2">
             <Label htmlFor="diet">Dietary Restrictions</Label>
             <Select
-              value={diet}
-              onValueChange={setDiet}
+              value={formData.diet}
+              onValueChange={handleSelectChange}
               disabled={isLoading}
             >
               <SelectTrigger id="diet" className="w-full">
@@ -121,7 +139,7 @@ export default function Home() {
           </div>
           {error && <p className="text-sm text-red-500">{error}</p>}
           <Button type="submit" className="w-full" disabled={isLoading}>
-            {isLoading ? "Logging in..." : "Login"}
+            {isLoading ? "Registering..." : "Register"}
           </Button>
         </form>
       </DialogContent>

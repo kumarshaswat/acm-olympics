@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.1",
+    "@joi/date": "^2.1.1",
     "@radix-ui/react-alert-dialog": "^1.1.2",
     "@radix-ui/react-avatar": "^1.1.1",
     "@radix-ui/react-checkbox": "^1.1.2",
@@ -26,8 +27,8 @@
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
     "dotenv": "^16.4.5",
-    "joi": "^17.13.3",
     "framer-motion": "^11.11.17",
+    "joi": "^17.13.3",
     "lucide-react": "^0.456.0",
     "mysql2": "^3.11.4",
     "next": "15.0.3",

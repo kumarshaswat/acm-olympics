@@ -1,7 +1,11 @@
 // pages/api/add-event.js
 
 import pool from '../../lib/db'; // Ensure this path is correct
-import Joi from 'joi';
+import JoiBase from 'joi';
+import JoiDate from '@joi/date';
+
+// Extend Joi with the date extension
+const Joi = JoiBase.extend(JoiDate);
 
 /**
  * Validation schema for event data
