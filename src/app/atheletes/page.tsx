@@ -13,17 +13,13 @@ import {
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table"
-import { ArrowUpDown, ChevronDown, MoreHorizontal } from 'lucide-react'
+import { ArrowUpDown, ChevronDown } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
-import { Checkbox } from "@/components/ui/checkbox"
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Input } from "@/components/ui/input"
@@ -36,75 +32,24 @@ import {
   TableRow,
 } from "@/components/ui/table"
 
-const data: Athlete[] = [
-  {
-    id: "m5gr84i9",
-    firstName: "John",
-    lastName: "Doe",
-    sport: "Swimming",
-    totalScore: 95.5,
-  },
-  {
-    id: "3u1reuv4",
-    firstName: "Jane",
-    lastName: "Smith",
-    sport: "Gymnastics",
-    totalScore: 98.2,
-  },
-  {
-    id: "derv1ws0",
-    firstName: "Mike",
-    lastName: "Johnson",
-    sport: "Track and Field",
-    totalScore: 87.9,
-  },
-  {
-    id: "5kma53ae",
-    firstName: "Emily",
-    lastName: "Brown",
-    sport: "Diving",
-    totalScore: 92.7,
-  },
-  {
-    id: "bhqecj4p",
-    firstName: "David",
-    lastName: "Wilson",
-    sport: "Basketball",
-    totalScore: 88.4,
-  },
-]
-
-export type Athlete = {
+type Athlete = {
   id: string
   firstName: string
   lastName: string
+  team: "red" | "blue" | "green" | "yellow"
   sport: string
-  totalScore: number
+  totalPoints: number
 }
 
+const data: Athlete[] = [
+  { id: "1", firstName: "John", lastName: "Doe", team: "red", sport: "Soccer", totalPoints: 120 },
+  { id: "2", firstName: "Jane", lastName: "Smith", team: "blue", sport: "Basketball", totalPoints: 150 },
+  { id: "3", firstName: "Bob", lastName: "Johnson", team: "green", sport: "Soccer", totalPoints: 90 },
+  { id: "4", firstName: "Alice", lastName: "Williams", team: "yellow", sport: "Tennis", totalPoints: 180 },
+  { id: "5", firstName: "Charlie", lastName: "Brown", team: "red", sport: "Basketball", totalPoints: 110 },
+]
+
 const columns: ColumnDef<Athlete>[] = [
-  {
-    id: "select",
-    header: ({ table }) => (
-      <Checkbox
-        checked={
-          table.getIsAllPageRowsSelected() ||
-          (table.getIsSomePageRowsSelected() && "indeterminate")
-        }
-        onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-        aria-label="Select all"
-      />
-    ),
-    cell: ({ row }) => (
-      <Checkbox
-        checked={row.getIsSelected()}
-        onCheckedChange={(value) => row.toggleSelected(!!value)}
-        aria-label="Select row"
-      />
-    ),
-    enableSorting: false,
-    enableHiding: false,
-  },
   {
     accessorKey: "firstName",
     header: "First Name",
@@ -116,58 +61,41 @@ const columns: ColumnDef<Athlete>[] = [
     cell: ({ row }) => <div>{row.getValue("lastName")}</div>,
   },
   {
+    accessorKey: "team",
+    header: "Team Name",
+    cell: ({ row }) => {
+      const team = row.getValue("team") as string
+      return (
+        <div className={`font-medium ${
+          team === "red" ? "text-red-600" :
+          team === "blue" ? "text-blue-600" :
+          team === "green" ? "text-green-600" :
+          "text-yellow-600"
+        }`}>
+          {team.charAt(0).toUpperCase() + team.slice(1)}
+        </div>
+      )
+    },
+  },
+  {
     accessorKey: "sport",
     header: "Sport",
     cell: ({ row }) => <div>{row.getValue("sport")}</div>,
   },
   {
-    accessorKey: "totalScore",
+    accessorKey: "totalPoints",
     header: ({ column }) => {
       return (
         <Button
           variant="ghost"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          className="text-right w-full"
         >
-          Total Score
+          Total Points
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
       )
     },
-    cell: ({ row }) => {
-      const score = parseFloat(row.getValue("totalScore"))
-      const formatted = score.toFixed(1)
-      return <div className="text-right font-medium">{formatted}</div>
-    },
-  },
-  {
-    id: "actions",
-    enableHiding: false,
-    cell: ({ row }) => {
-      const athlete = row.original
-
-      return (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="h-8 w-8 p-0">
-              <span className="sr-only">Open menu</span>
-              <MoreHorizontal className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuLabel>Actions</DropdownMenuLabel>
-            <DropdownMenuItem
-              onClick={() => navigator.clipboard.writeText(athlete.id)}
-            >
-              Copy athlete ID
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem>View athlete details</DropdownMenuItem>
-            <DropdownMenuItem>Edit athlete information</DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      )
-    },
+    cell: ({ row }) => <div>{row.getValue("totalPoints")}</div>,
   },
 ]
 
@@ -196,41 +124,45 @@ function DataTableDemo() {
     },
   })
 
+  // Get unique sports from the data
+  const sports = React.useMemo(() => {
+    const sportSet = new Set(data.map(athlete => athlete.sport))
+    return Array.from(sportSet)
+  }, [])
+
   return (
     <div className="w-full">
       <div className="flex items-center py-4">
         <Input
-          placeholder="Filter sports..."
-          value={(table.getColumn("sport")?.getFilterValue() as string) ?? ""}
+          placeholder="Filter first names..."
+          value={(table.getColumn("firstName")?.getFilterValue() as string) ?? ""}
           onChange={(event) =>
-            table.getColumn("sport")?.setFilterValue(event.target.value)
+            table.getColumn("firstName")?.setFilterValue(event.target.value)
           }
           className="max-w-sm"
         />
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="outline" className="ml-auto">
-              Columns <ChevronDown className="ml-2 h-4 w-4" />
+              Filter by Sport <ChevronDown className="ml-2 h-4 w-4" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            {table
-              .getAllColumns()
-              .filter((column) => column.getCanHide())
-              .map((column) => {
-                return (
-                  <DropdownMenuCheckboxItem
-                    key={column.id}
-                    className="capitalize"
-                    checked={column.getIsVisible()}
-                    onCheckedChange={(value) =>
-                      column.toggleVisibility(!!value)
-                    }
-                  >
-                    {column.id}
-                  </DropdownMenuCheckboxItem>
-                )
-              })}
+            <DropdownMenuCheckboxItem
+              checked={!table.getColumn("sport")?.getFilterValue()}
+              onCheckedChange={() => table.getColumn("sport")?.setFilterValue(null)}
+            >
+              All Sports
+            </DropdownMenuCheckboxItem>
+            {sports.map((sport) => (
+              <DropdownMenuCheckboxItem
+                key={sport}
+                checked={table.getColumn("sport")?.getFilterValue() === sport}
+                onCheckedChange={() => table.getColumn("sport")?.setFilterValue(sport)}
+              >
+                {sport}
+              </DropdownMenuCheckboxItem>
+            ))}
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
@@ -263,20 +195,14 @@ function DataTableDemo() {
                 >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id}>
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext()
-                      )}
+                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
                     </TableCell>
                   ))}
                 </TableRow>
               ))
             ) : (
               <TableRow>
-                <TableCell
-                  colSpan={columns.length}
-                  className="h-24 text-center"
-                >
+                <TableCell colSpan={columns.length} className="h-24 text-center">
                   No results.
                 </TableCell>
               </TableRow>
