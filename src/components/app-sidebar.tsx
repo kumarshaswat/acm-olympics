@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import Link from "next/link"
 import { ChevronsUpDown, Home, Settings, Users } from 'lucide-react'
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -31,9 +32,9 @@ const teams = [
 ]
 
 const navigationItems = [
-  { name: "Home", icon: Home },
-  { name: "Users", icon: Users },
-  { name: "Settings", icon: Settings },
+  { name: "Dashboard", icon: Home, href: "/dashboard" },
+  { name: "Atheletes", icon: Users, href: "/atheletes" },
+  { name: "Settings", icon: Settings, href: "/settings" },
 ]
 
 export function CustomizableSidebar() {
@@ -93,10 +94,12 @@ export function CustomizableSidebar() {
           <div className="px-3 py-2 text-xs font-semibold text-muted-foreground">Navigation</div>
           {navigationItems.map((item) => (
             <SidebarMenuItem key={item.name}>
-              <SidebarMenuButton>
-                <item.icon className="mr-2 h-4 w-4" />
-                {item.name}
-              </SidebarMenuButton>
+              <Link href={item.href} passHref legacyBehavior>
+                <SidebarMenuButton as="a">
+                  <item.icon className="mr-2 h-4 w-4" />
+                  {item.name}
+                </SidebarMenuButton>
+              </Link>
             </SidebarMenuItem>
           ))}
         </SidebarMenu>
