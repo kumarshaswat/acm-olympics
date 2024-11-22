@@ -34,7 +34,7 @@ const teams = [
 const navigationItems = [
   { name: "Dashboard", icon: Home, href: "/Dashboard" },
   { name: "Atheletes", icon: Users, href: "/atheletes" },
-  { name: "Settings", icon: Settings, href: "/settings" },
+  { name: "Settings", icon: Settings, href: "/Settings" },
 ]
 
 export function CustomizableSidebar() {
