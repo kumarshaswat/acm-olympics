@@ -1,6 +1,8 @@
-"use client"
+// pages/athletes.tsx
 
-import * as React from "react"
+"use client";
+
+import * as React from "react";
 import {
   ColumnDef,
   ColumnFiltersState,
@@ -12,17 +14,17 @@ import {
   getPaginationRowModel,
   getSortedRowModel,
   useReactTable,
-} from "@tanstack/react-table"
-import { ArrowUpDown, ChevronDown } from "lucide-react"
+} from "@tanstack/react-table";
+import { ArrowUpDown, ChevronDown } from "lucide-react";
 
-import { Button } from "@/components/ui/button"
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { Input } from "@/components/ui/input"
+} from "@/components/ui/dropdown-menu";
+import { Input } from "@/components/ui/input";
 import {
   Table,
   TableBody,
@@ -30,24 +32,19 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table"
+} from "@/components/ui/table";
 
+/**
+ * Athlete Data Type
+ */
 type Athlete = {
-  id: string
-  firstName: string
-  lastName: string
-  team: "red" | "blue" | "green" | "yellow"
-  sport: string
-  totalPoints: number
-}
-
-const data: Athlete[] = [
-  { id: "1", firstName: "John", lastName: "Doe", team: "red", sport: "Soccer", totalPoints: 120 },
-  { id: "2", firstName: "Jane", lastName: "Smith", team: "blue", sport: "Basketball", totalPoints: 150 },
-  { id: "3", firstName: "Bob", lastName: "Johnson", team: "green", sport: "Soccer", totalPoints: 90 },
-  { id: "4", firstName: "Alice", lastName: "Williams", team: "yellow", sport: "Tennis", totalPoints: 180 },
-  { id: "5", firstName: "Charlie", lastName: "Brown", team: "red", sport: "Basketball", totalPoints: 110 },
-]
+  id: string;
+  firstName: string;
+  lastName: string;
+  team: string;
+  active: boolean;
+  totalPoints: number;
+};
 
 const columns: ColumnDef<Athlete>[] = [
   {
@@ -64,23 +61,41 @@ const columns: ColumnDef<Athlete>[] = [
     accessorKey: "team",
     header: "Team Name",
     cell: ({ row }) => {
-      const team = row.getValue("team") as string
+      const team = row.getValue("team") as string;
       return (
-        <div className={`font-medium ${
-          team === "red" ? "text-red-600" :
-          team === "blue" ? "text-blue-600" :
-          team === "green" ? "text-green-600" :
-          "text-yellow-600"
-        }`}>
+        <div
+          className={`font-medium ${
+            team === "red"
+              ? "text-red-600"
+              : team === "blue"
+              ? "text-blue-600"
+              : team === "green"
+              ? "text-green-600"
+              : "text-yellow-600"
+          }`}
+        >
           {team.charAt(0).toUpperCase() + team.slice(1)}
         </div>
-      )
+      );
     },
   },
   {
-    accessorKey: "sport",
-    header: "Sport",
-    cell: ({ row }) => <div>{row.getValue("sport")}</div>,
+    accessorKey: "active",
+    header: "Status",
+    cell: ({ row }) => {
+      const isActive = row.getValue("active") as boolean;
+      return (
+        <span
+          className={`inline-block px-2 py-1 rounded-full text-xs font-semibold ${
+            isActive
+              ? "bg-green-200 text-green-800"
+              : "bg-red-200 text-red-800"
+          }`}
+        >
+          {isActive ? "Active" : "Inactive"}
+        </span>
+      );
+    },
   },
   {
     accessorKey: "totalPoints",
@@ -88,25 +103,58 @@ const columns: ColumnDef<Athlete>[] = [
       return (
         <Button
           variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          onClick={() =>
+            column.toggleSorting(column.getIsSorted() === "asc")
+          }
         >
           Total Points
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
-      )
+      );
     },
     cell: ({ row }) => <div>{row.getValue("totalPoints")}</div>,
   },
-]
+];
 
 function DataTableDemo() {
-  const [sorting, setSorting] = React.useState<SortingState>([])
-  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
-  const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({})
-  const [rowSelection, setRowSelection] = React.useState({})
+  const [sorting, setSorting] = React.useState<SortingState>([]);
+  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
+  const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
+  const [rowSelection, setRowSelection] = React.useState({});
+
+  const [athletes, setAthletes] = React.useState<Athlete[]>([]);
+  const [isLoading, setIsLoading] = React.useState<boolean>(false);
+  const [fetchError, setFetchError] = React.useState<string>("");
+
+  // Fetch athletes data from the API
+  React.useEffect(() => {
+    const fetchAthletes = async () => {
+      setIsLoading(true);
+      setFetchError("");
+
+      try {
+        const response = await fetch("/api/athletes");
+        const data = await response.json();
+
+        if (response.ok) {
+          setAthletes(data);
+        } else {
+          setFetchError(data.error || "Failed to fetch athletes.");
+          console.error("Failed to fetch athletes:", data.error);
+        }
+      } catch (err) {
+        setFetchError("An unexpected error occurred while fetching athletes.");
+        console.error("Error fetching athletes:", err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchAthletes();
+  }, []);
 
   const table = useReactTable({
-    data,
+    data: athletes,
     columns,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
@@ -122,13 +170,16 @@ function DataTableDemo() {
       columnVisibility,
       rowSelection,
     },
-  })
+  });
 
-  // Get unique sports from the data
-  const sports = React.useMemo(() => {
-    const sportSet = new Set(data.map(athlete => athlete.sport))
-    return Array.from(sportSet)
-  }, [])
+  // Get unique teams from the data for potential filtering in the future
+  const teams = React.useMemo(() => {
+    const teamSet = new Set<string>();
+    athletes.forEach(athlete => {
+      athlete.team && teamSet.add(athlete.team);
+    });
+    return Array.from(teamSet);
+  }, [athletes]);
 
   return (
     <div className="w-full">
@@ -141,75 +192,60 @@ function DataTableDemo() {
           }
           className="max-w-sm"
         />
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="outline" className="ml-auto">
-              Filter by Sport <ChevronDown className="ml-2 h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuCheckboxItem
-              checked={!table.getColumn("sport")?.getFilterValue()}
-              onCheckedChange={() => table.getColumn("sport")?.setFilterValue(null)}
-            >
-              All Sports
-            </DropdownMenuCheckboxItem>
-            {sports.map((sport) => (
-              <DropdownMenuCheckboxItem
-                key={sport}
-                checked={table.getColumn("sport")?.getFilterValue() === sport}
-                onCheckedChange={() => table.getColumn("sport")?.setFilterValue(sport)}
-              >
-                {sport}
-              </DropdownMenuCheckboxItem>
-            ))}
-          </DropdownMenuContent>
-        </DropdownMenu>
+        {/* You can add team-based filtering here if needed */}
       </div>
-      <div className="rounded-md border">
-        <Table>
-          <TableHeader>
-            {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id}>
-                {headerGroup.headers.map((header) => {
-                  return (
-                    <TableHead key={header.id}>
-                      {header.isPlaceholder
-                        ? null
-                        : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext()
-                          )}
-                    </TableHead>
-                  )
-                })}
-              </TableRow>
-            ))}
-          </TableHeader>
-          <TableBody>
-            {table.getRowModel().rows?.length ? (
-              table.getRowModel().rows.map((row) => (
-                <TableRow
-                  key={row.id}
-                  data-state={row.getIsSelected() && "selected"}
-                >
-                  {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                    </TableCell>
-                  ))}
+
+      {isLoading ? (
+        <p className="text-center">Loading athletes...</p>
+      ) : fetchError ? (
+        <p className="text-red-500 text-center">{fetchError}</p>
+      ) : (
+        <div className="rounded-md border">
+          <Table>
+            <TableHeader>
+              {table.getHeaderGroups().map((headerGroup) => (
+                <TableRow key={headerGroup.id}>
+                  {headerGroup.headers.map((header) => {
+                    return (
+                      <TableHead key={header.id}>
+                        {header.isPlaceholder
+                          ? null
+                          : flexRender(
+                              header.column.columnDef.header,
+                              header.getContext()
+                            )}
+                      </TableHead>
+                    );
+                  })}
                 </TableRow>
-              ))
-            ) : (
-              <TableRow>
-                <TableCell colSpan={columns.length} className="h-24 text-center">
-                  No results.
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
-      </div>
+              ))}
+            </TableHeader>
+            <TableBody>
+              {table.getRowModel().rows?.length ? (
+                table.getRowModel().rows.map((row) => (
+                  <TableRow
+                    key={row.id}
+                    data-state={row.getIsSelected() && "selected"}
+                  >
+                    {row.getVisibleCells().map((cell) => (
+                      <TableCell key={cell.id}>
+                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell colSpan={columns.length} className="h-24 text-center">
+                    No results.
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </div>
+      )}
+
       <div className="flex items-center justify-end space-x-2 py-4">
         <div className="flex-1 text-sm text-muted-foreground">
           {table.getFilteredSelectedRowModel().rows.length} of{" "}
@@ -235,7 +271,7 @@ function DataTableDemo() {
         </div>
       </div>
     </div>
-  )
+  );
 }
 
 export default function AthletesPage() {
@@ -244,6 +280,5 @@ export default function AthletesPage() {
       <h1 className="text-2xl font-bold mb-5">Athletes</h1>
       <DataTableDemo />
     </div>
-  )
+  );
 }
-
