@@ -4,6 +4,8 @@ import * as React from "react"
 import Link from "next/link"
 import { ChevronsUpDown, Home, Settings, Users } from 'lucide-react'
 
+import { AddEventModal } from "@/components/add-event-modal"
+import { AddStudentModal } from "@/components/add-student-modal"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import {
   DropdownMenu,
@@ -103,6 +105,15 @@ export function CustomizableSidebar() {
             </SidebarMenuItem>
           ))}
         </SidebarMenu>
+        <SidebarMenu>
+          <div className="px-3 py-2 text-xs font-semibold text-muted-foreground">Admin</div>
+          <SidebarMenuItem>
+            <AddEventModal />
+          </SidebarMenuItem>
+          <SidebarMenuItem>
+            <AddStudentModal />
+          </SidebarMenuItem>
+        </SidebarMenu>
       </SidebarContent>
       <SidebarFooter>
         <SidebarMenu>
@@ -154,4 +165,3 @@ export function CustomizableSidebar() {
     </Sidebar>
   )
 }
-
