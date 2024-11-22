@@ -36,47 +36,53 @@ import {
   TableRow,
 } from "@/components/ui/table"
 
-const data: Payment[] = [
+const data: Athlete[] = [
   {
     id: "m5gr84i9",
-    amount: 316,
-    status: "success",
-    email: "ken99@yahoo.com",
+    firstName: "John",
+    lastName: "Doe",
+    sport: "Swimming",
+    totalScore: 95.5,
   },
   {
     id: "3u1reuv4",
-    amount: 242,
-    status: "success",
-    email: "Abe45@gmail.com",
+    firstName: "Jane",
+    lastName: "Smith",
+    sport: "Gymnastics",
+    totalScore: 98.2,
   },
   {
     id: "derv1ws0",
-    amount: 837,
-    status: "processing",
-    email: "Monserrat44@gmail.com",
+    firstName: "Mike",
+    lastName: "Johnson",
+    sport: "Track and Field",
+    totalScore: 87.9,
   },
   {
     id: "5kma53ae",
-    amount: 874,
-    status: "success",
-    email: "Silas22@gmail.com",
+    firstName: "Emily",
+    lastName: "Brown",
+    sport: "Diving",
+    totalScore: 92.7,
   },
   {
     id: "bhqecj4p",
-    amount: 721,
-    status: "failed",
-    email: "carmella@hotmail.com",
+    firstName: "David",
+    lastName: "Wilson",
+    sport: "Basketball",
+    totalScore: 88.4,
   },
 ]
 
-export type Payment = {
+export type Athlete = {
   id: string
-  amount: number
-  status: "pending" | "processing" | "success" | "failed"
-  email: string
+  firstName: string
+  lastName: string
+  sport: string
+  totalScore: number
 }
 
-const columns: ColumnDef<Payment>[] = [
+const columns: ColumnDef<Athlete>[] = [
   {
     id: "select",
     header: ({ table }) => (
@@ -100,39 +106,37 @@ const columns: ColumnDef<Payment>[] = [
     enableHiding: false,
   },
   {
-    accessorKey: "status",
-    header: "Status",
-    cell: ({ row }) => (
-      <div className="capitalize">{row.getValue("status")}</div>
-    ),
+    accessorKey: "firstName",
+    header: "First Name",
+    cell: ({ row }) => <div>{row.getValue("firstName")}</div>,
   },
   {
-    accessorKey: "email",
+    accessorKey: "lastName",
+    header: "Last Name",
+    cell: ({ row }) => <div>{row.getValue("lastName")}</div>,
+  },
+  {
+    accessorKey: "sport",
+    header: "Sport",
+    cell: ({ row }) => <div>{row.getValue("sport")}</div>,
+  },
+  {
+    accessorKey: "totalScore",
     header: ({ column }) => {
       return (
         <Button
           variant="ghost"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          className="text-right w-full"
         >
-          Email
+          Total Score
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
       )
     },
-    cell: ({ row }) => <div className="lowercase">{row.getValue("email")}</div>,
-  },
-  {
-    accessorKey: "amount",
-    header: () => <div className="text-right">Amount</div>,
     cell: ({ row }) => {
-      const amount = parseFloat(row.getValue("amount"))
-
-      // Format the amount as a dollar amount
-      const formatted = new Intl.NumberFormat("en-US", {
-        style: "currency",
-        currency: "USD",
-      }).format(amount)
-
+      const score = parseFloat(row.getValue("totalScore"))
+      const formatted = score.toFixed(1)
       return <div className="text-right font-medium">{formatted}</div>
     },
   },
@@ -140,7 +144,7 @@ const columns: ColumnDef<Payment>[] = [
     id: "actions",
     enableHiding: false,
     cell: ({ row }) => {
-      const payment = row.original
+      const athlete = row.original
 
       return (
         <DropdownMenu>
@@ -153,13 +157,13 @@ const columns: ColumnDef<Payment>[] = [
           <DropdownMenuContent align="end">
             <DropdownMenuLabel>Actions</DropdownMenuLabel>
             <DropdownMenuItem
-              onClick={() => navigator.clipboard.writeText(payment.id)}
+              onClick={() => navigator.clipboard.writeText(athlete.id)}
             >
-              Copy payment ID
+              Copy athlete ID
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>View customer</DropdownMenuItem>
-            <DropdownMenuItem>View payment details</DropdownMenuItem>
+            <DropdownMenuItem>View athlete details</DropdownMenuItem>
+            <DropdownMenuItem>Edit athlete information</DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       )
@@ -169,11 +173,8 @@ const columns: ColumnDef<Payment>[] = [
 
 function DataTableDemo() {
   const [sorting, setSorting] = React.useState<SortingState>([])
-  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
-    []
-  )
-  const [columnVisibility, setColumnVisibility] =
-    React.useState<VisibilityState>({})
+  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
+  const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({})
   const [rowSelection, setRowSelection] = React.useState({})
 
   const table = useReactTable({
@@ -199,10 +200,10 @@ function DataTableDemo() {
     <div className="w-full">
       <div className="flex items-center py-4">
         <Input
-          placeholder="Filter emails..."
-          value={(table.getColumn("email")?.getFilterValue() as string) ?? ""}
+          placeholder="Filter sports..."
+          value={(table.getColumn("sport")?.getFilterValue() as string) ?? ""}
           onChange={(event) =>
-            table.getColumn("email")?.setFilterValue(event.target.value)
+            table.getColumn("sport")?.setFilterValue(event.target.value)
           }
           className="max-w-sm"
         />
