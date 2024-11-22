@@ -74,7 +74,7 @@ export default function ProfilePage() {
                           {event.pointsEarned} / {event.totalPoints} points
                         </Badge>
                         <Badge variant="secondary">
-                          {getOrdinal(event.placement)} place
+                          {getOrdinal(event.placement ?? 0)} place
                         </Badge>
                       </>
                     )}
