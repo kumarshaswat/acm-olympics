@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import Link from "next/link"
 import { ChevronsUpDown, Home, Settings, Users } from 'lucide-react'
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -24,23 +25,23 @@ import {
 
 const teams = [
   { id: 1, name: "Tennis", logo: "T" },
-  { id: 2, name: "Soccor", logo: "S" },
+  { id: 2, name: "Soccer", logo: "S" },
   { id: 3, name: "Basketball", logo: "B" },
   { id: 4, name: "Sprint", logo: "S" },
   { id: 5, name: "Swimming", logo: "S" },
 ]
 
 const navigationItems = [
-  { name: "Home", icon: Home },
-  { name: "Users", icon: Users },
-  { name: "Settings", icon: Settings },
+  { name: "Dashboard", icon: Home, href: "/dashboard" },
+  { name: "Atheletes", icon: Users, href: "/atheletes" },
+  { name: "Settings", icon: Settings, href: "/settings" },
 ]
 
 export function CustomizableSidebar() {
   const [selectedTeam, setSelectedTeam] = React.useState(teams[0])
   const [user, setUser] = React.useState({
     name: "John Doe",
-    email: "john@example.com",
+    email: "jxd123123@example.com",
     avatar: "/placeholder.svg?height=32&width=32",
   })
 
@@ -93,10 +94,12 @@ export function CustomizableSidebar() {
           <div className="px-3 py-2 text-xs font-semibold text-muted-foreground">Navigation</div>
           {navigationItems.map((item) => (
             <SidebarMenuItem key={item.name}>
-              <SidebarMenuButton>
-                <item.icon className="mr-2 h-4 w-4" />
-                {item.name}
-              </SidebarMenuButton>
+              <Link href={item.href} passHref legacyBehavior>
+                <SidebarMenuButton as="a">
+                  <item.icon className="mr-2 h-4 w-4" />
+                  {item.name}
+                </SidebarMenuButton>
+              </Link>
             </SidebarMenuItem>
           ))}
         </SidebarMenu>
@@ -135,21 +138,14 @@ export function CustomizableSidebar() {
               >
                 <DropdownMenuLabel>My Account</DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  onSelect={() =>
-                    setUser({
-                      name: "Jane Smith",
-                      email: "jane@example.com",
-                      avatar: "/placeholder.svg?height=32&width=32",
-                    })
-                  }
-                >
-                  Switch to Jane Smith
-                </DropdownMenuItem>
-                <DropdownMenuItem>Profile</DropdownMenuItem>
+                <Link href="/profile">
+                  <DropdownMenuItem>Profile</DropdownMenuItem>
+                </Link>
                 <DropdownMenuItem>Settings</DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem>Log out</DropdownMenuItem>
+                <Link href="/#">
+                  <DropdownMenuItem as="a">Log out</DropdownMenuItem>
+                </Link>
               </DropdownMenuContent>
             </DropdownMenu>
           </SidebarMenuItem>
