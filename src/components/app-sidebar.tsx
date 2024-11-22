@@ -25,7 +25,7 @@ import {
 
 const teams = [
   { id: 1, name: "Tennis", logo: "T" },
-  { id: 2, name: "Soccor", logo: "S" },
+  { id: 2, name: "Soccer", logo: "S" },
   { id: 3, name: "Basketball", logo: "B" },
   { id: 4, name: "Sprint", logo: "S" },
   { id: 5, name: "Swimming", logo: "S" },
@@ -41,7 +41,7 @@ export function CustomizableSidebar() {
   const [selectedTeam, setSelectedTeam] = React.useState(teams[0])
   const [user, setUser] = React.useState({
     name: "John Doe",
-    email: "john@example.com",
+    email: "jxd123123@example.com",
     avatar: "/placeholder.svg?height=32&width=32",
   })
 
@@ -138,21 +138,14 @@ export function CustomizableSidebar() {
               >
                 <DropdownMenuLabel>My Account</DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  onSelect={() =>
-                    setUser({
-                      name: "Jane Smith",
-                      email: "jane@example.com",
-                      avatar: "/placeholder.svg?height=32&width=32",
-                    })
-                  }
-                >
-                  Switch to Jane Smith
-                </DropdownMenuItem>
-                <DropdownMenuItem>Profile</DropdownMenuItem>
+                <Link href="/profile">
+                  <DropdownMenuItem>Profile</DropdownMenuItem>
+                </Link>
                 <DropdownMenuItem>Settings</DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem>Log out</DropdownMenuItem>
+                <Link href="/#">
+                  <DropdownMenuItem as="a">Log out</DropdownMenuItem>
+                </Link>
               </DropdownMenuContent>
             </DropdownMenu>
           </SidebarMenuItem>

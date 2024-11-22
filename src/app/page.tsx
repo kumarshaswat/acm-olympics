@@ -1,87 +1,80 @@
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog"
+"use client"
 
-const events = [
-  {
-    title: "Tennis",
-    date: "2023-07-15",
-    time: "14:00",
-    location: "Central Park, New York",
-  },
-  {
-    title: "Soccer",
-    date: "2023-08-22",
-    time: "09:00",
-    location: "Convention Center, San Francisco",
-  },
-  {
-    title: "Basketball",
-    date: "2023-09-05",
-    time: "18:30",
-    location: "Modern Art Gallery, London",
-  },
-  {
-    title: "Sprint",
-    date: "2023-10-10",
-    time: "19:00",
-    location: "Gourmet Hall, Paris",
-  },
-]
+import { useState } from "react"
+import { useRouter } from "next/navigation"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 
 export default function Home() {
+  const [isOpen, setIsOpen] = useState(true)
+  const [username, setUsername] = useState("")
+  const [password, setPassword] = useState("")
+  const [error, setError] = useState("")
+  const [isLoading, setIsLoading] = useState(false)
+  const router = useRouter()
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setError("")
+    setIsLoading(true)
+
+    try {
+      // Simulating an API call
+      await new Promise(resolve => setTimeout(resolve, 1000))
+
+      // For demo purposes, let's consider the login successful if both fields are filled
+      if (username && password) {
+        setIsOpen(false)
+        router.push("/dashboard") // Redirect to dashboard after successful login
+      } else {
+        setError("Invalid username or password")
+      }
+    } catch (err) {
+      setError("An error occurred. Please try again.")
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
   return (
-    <main className="w-full">
-      <div className="flex flex-col w-full pt-20 justify-center items-center">
-        <h1 className="text-bold text-3xl mb-10">Events</h1>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl">
-          {events.map((event, index) => (
-            <Card key={index} className="w-full">
-              <CardHeader>
-                <CardTitle>{event.title}</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-muted-foreground">
-                  Date: {event.date} at {event.time}
-                </p>
-                <p className="text-sm text-muted-foreground mt-2">
-                  Location: {event.location}
-                </p>
-              </CardContent>
-              <CardFooter>
-                <AlertDialog>
-                  <AlertDialogTrigger asChild>
-                    <Button variant="outline">Register</Button>
-                  </AlertDialogTrigger>
-                  <AlertDialogContent>
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                      <AlertDialogDescription>
-                        Are you sure you want to register for event name?
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel>Cancel</AlertDialogCancel>
-                      <AlertDialogAction>Continue</AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
-              </CardFooter>
-            </Card>
-          ))}
-        </div>
-      </div>
-    </main>
+    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+      <DialogContent className="sm:max-w-[425px]">
+        <DialogHeader>
+          <DialogTitle>Login to Your Account</DialogTitle>
+          <DialogDescription>
+            Enter your credentials to access the application.
+          </DialogDescription>
+        </DialogHeader>
+        <form onSubmit={handleLogin} className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="username">Username</Label>
+            <Input
+              id="username"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              required
+              disabled={isLoading}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="password">Password</Label>
+            <Input
+              id="password"
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              disabled={isLoading}
+            />
+          </div>
+          {error && <p className="text-sm text-red-500">{error}</p>}
+          <Button type="submit" className="w-full" disabled={isLoading}>
+            {isLoading ? "Logging in..." : "Login"}
+          </Button>
+        </form>
+      </DialogContent>
+    </Dialog>
   )
 }
-
