@@ -1,5 +1,3 @@
-// pages/athletes.tsx
-
 "use client";
 
 import * as React from "react";
@@ -15,13 +13,15 @@ import {
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import { ArrowUpDown, ChevronDown } from "lucide-react";
+import { ArrowUpDown, ChevronDown, MoreHorizontal } from 'lucide-react';
 
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
-  DropdownMenuCheckboxItem,
   DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
@@ -33,10 +33,16 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { EditAthleteModal } from "@/components/ui/edit-athlete-modal";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 
-/**
- * Athlete Data Type
- */
 type Athlete = {
   id: string;
   firstName: string;
@@ -103,9 +109,7 @@ const columns: ColumnDef<Athlete>[] = [
       return (
         <Button
           variant="ghost"
-          onClick={() =>
-            column.toggleSorting(column.getIsSorted() === "asc")
-          }
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
           Total Points
           <ArrowUpDown className="ml-2 h-4 w-4" />
@@ -113,6 +117,33 @@ const columns: ColumnDef<Athlete>[] = [
       );
     },
     cell: ({ row }) => <div>{row.getValue("totalPoints")}</div>,
+  },
+  {
+    id: "actions",
+    cell: ({ row }) => {
+      const athlete = row.original;
+
+      return (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" className="h-8 w-8 p-0">
+              <span className="sr-only">Open menu</span>
+              <MoreHorizontal className="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuLabel>Actions</DropdownMenuLabel>
+            <DropdownMenuItem onClick={() => console.log("Edit", athlete)}>
+              Edit
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={() => console.log("Delete", athlete)}>
+              Delete
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      );
+    },
   },
 ];
 
@@ -125,6 +156,8 @@ function DataTableDemo() {
   const [athletes, setAthletes] = React.useState<Athlete[]>([]);
   const [isLoading, setIsLoading] = React.useState<boolean>(false);
   const [fetchError, setFetchError] = React.useState<string>("");
+  const [editingAthlete, setEditingAthlete] = React.useState<Athlete | null>(null);
+  const [deletingAthlete, setDeletingAthlete] = React.useState<Athlete | null>(null);
 
   // Fetch athletes data from the API
   React.useEffect(() => {
@@ -175,15 +208,71 @@ function DataTableDemo() {
   // Get unique teams from the data for potential filtering in the future
   const teams = React.useMemo(() => {
     const teamSet = new Set<string>();
-    athletes.forEach(athlete => {
+    athletes.forEach((athlete) => {
       athlete.team && teamSet.add(athlete.team);
     });
     return Array.from(teamSet);
   }, [athletes]);
 
+  const handleEditAthlete = (athlete: Athlete) => {
+    setEditingAthlete(athlete);
+  };
+
+  const handleSaveAthlete = (updatedAthlete: Athlete) => {
+    setAthletes(athletes.map(a => a.id === updatedAthlete.id ? updatedAthlete : a));
+    setEditingAthlete(null);
+  };
+
+  
+  const [formData, setFormData] = React.useState({});
+  const handleDeleteAthlete = (athlete: Athlete) => {
+    // Set the deleting athlete to trigger the confirmation dialog
+    setDeletingAthlete(athlete);
+  
+    // Update the formData with the athlete's first and last name
+    setFormData({
+      firstName: athlete.firstName,
+      lastName: athlete.lastName,
+    });
+  };
+  
+  const confirmDeleteAthlete = async () => {
+    if (deletingAthlete) {
+      try {
+        // Perform the deletion on the server
+        const response = await fetch('/api/delete-student', {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            firstName: deletingAthlete.firstName,
+            lastName: deletingAthlete.lastName,
+          }),
+        });
+  
+        if (response.ok) {
+          // Remove the athlete from the state
+          setAthletes((prevAthletes) =>
+            prevAthletes.filter((athlete) => athlete.id !== deletingAthlete.id)
+          );
+  
+          // Clear the formData
+          setFormData({});
+        } else {
+          console.error('Failed to delete athlete:', await response.json());
+        }
+      } catch (error) {
+        console.error('Error deleting athlete:', error);
+      } finally {
+        setDeletingAthlete(null);
+      }
+    }
+  };
+  
+
+
   return (
     <div className="w-full">
-      <div className="flex items-center py-4">
+      <div className="flex items-center justify-between py-4">
         <Input
           placeholder="Filter first names..."
           value={(table.getColumn("firstName")?.getFilterValue() as string) ?? ""}
@@ -192,7 +281,23 @@ function DataTableDemo() {
           }
           className="max-w-sm"
         />
-        {/* You can add team-based filtering here if needed */}
+        <Select
+          onValueChange={(value) =>
+            table.getColumn("team")?.setFilterValue(value === "all" ? "" : value)
+          }
+        >
+          <SelectTrigger className="w-[180px]">
+            <SelectValue placeholder="Filter by team" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All teams</SelectItem>
+            {teams.map((team) => (
+              <SelectItem key={team} value={team}>
+                {team.charAt(0).toUpperCase() + team.slice(1)}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
       {isLoading ? (
@@ -229,14 +334,38 @@ function DataTableDemo() {
                   >
                     {row.getVisibleCells().map((cell) => (
                       <TableCell key={cell.id}>
-                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                        {cell.column.id === 'actions' ? (
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" className="h-8 w-8 p-0">
+                                <span className="sr-only">Open menu</span>
+                                <MoreHorizontal className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                              <DropdownMenuItem onClick={() => handleEditAthlete(row.original)}>
+                                Edit
+                              </DropdownMenuItem>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem onClick={() => handleDeleteAthlete(row.original) }>
+                                Delete
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        ) : (
+                          flexRender(cell.column.columnDef.cell, cell.getContext())
+                        )}
                       </TableCell>
                     ))}
                   </TableRow>
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={columns.length} className="h-24 text-center">
+                  <TableCell
+                    colSpan={columns.length}
+                    className="h-24 text-center"
+                  >
                     No results.
                   </TableCell>
                 </TableRow>
@@ -270,6 +399,21 @@ function DataTableDemo() {
           </Button>
         </div>
       </div>
+
+      <EditAthleteModal
+        athlete={editingAthlete}
+        isOpen={!!editingAthlete}
+        onClose={() => setEditingAthlete(null)}
+        onSave={handleSaveAthlete}
+      />
+
+      <ConfirmDialog
+        isOpen={!!deletingAthlete}
+        onClose={() => setDeletingAthlete(null)}
+        onConfirm={confirmDeleteAthlete}
+        title="Delete Athlete?"
+        description={`Are you sure you want to delete ${deletingAthlete?.firstName} ${deletingAthlete?.lastName}? This action cannot be undone.`}
+      />
     </div>
   );
 }
@@ -282,3 +426,4 @@ export default function AthletesPage() {
     </div>
   );
 }
+

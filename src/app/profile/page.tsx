@@ -1,21 +1,9 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+"use client";
 
-// This would come from a database or API
-const profileData = {
-  name: "John Doe",
-  netId: "jxd123123",
-  totalPoints: 250,
-  events: [
-    { name: "100m Sprint", date: "2023-06-15", pointsEarned: 40, totalPoints: 50, placement: 2 },
-    { name: "Long Jump", date: "2023-06-16", pointsEarned: 65, totalPoints: 75, placement: 3 },
-    { name: "4x100m Relay", date: "2023-06-17", pointsEarned: 95, totalPoints: 100, placement: 1 },
-    { name: "High Jump", date: "2023-06-18", pointsEarned: 20, totalPoints: 25, placement: 5 },
-    { name: "200m Sprint", date: "2023-06-20", totalPoints: 50, status: "upcoming" },
-    { name: "Javelin Throw", date: "2023-06-22", totalPoints: 75, status: "upcoming" },
-  ],
-}
+import * as React from "react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
 function getOrdinal(n: number) {
   let suffix = "th";
@@ -30,6 +18,50 @@ function getOrdinal(n: number) {
 }
 
 export default function ProfilePage() {
+  const netId = "fxj200003"; // Hardcoded net_id
+  const [profileData, setProfileData] = React.useState<{
+    name: string;
+    netId: string;
+    totalPoints: number;
+    events: Array<{
+      name: string;
+      date: string;
+      pointsEarned?: number;
+      totalPoints: number;
+      placement?: number;
+      status?: string;
+    }>;
+  } | null>(null);
+  const [error, setError] = React.useState<string>("");
+
+  React.useEffect(() => {
+    const fetchProfileData = async () => {
+      try {
+        const response = await fetch(`/api/profile?net_id=${netId}`);
+        const data = await response.json();
+
+        if (response.ok) {
+          setProfileData(data);
+        } else {
+          setError(data.error || "Failed to fetch profile data.");
+        }
+      } catch (err) {
+        console.error("Error fetching profile data:", err);
+        setError("An unexpected error occurred. Please try again later.");
+      }
+    };
+
+    fetchProfileData();
+  }, [netId]);
+
+  if (error) {
+    return <p className="text-red-500 text-center">{error}</p>;
+  }
+
+  if (!profileData) {
+    return <p className="text-center">Loading profile data...</p>;
+  }
+
   // Sort events: upcoming first, then by date
   const sortedEvents = [...profileData.events].sort((a, b) => {
     if (a.status === "upcoming" && b.status !== "upcoming") return -1;
@@ -42,7 +74,7 @@ export default function ProfilePage() {
       <Card className="max-w-3xl mx-auto">
         <CardHeader className="flex flex-row items-center gap-4">
           <Avatar className="w-20 h-20">
-            <AvatarFallback className="text-4xl font-bold">J</AvatarFallback>
+            <AvatarFallback className="text-4xl font-bold">{profileData.name[0]}</AvatarFallback>
           </Avatar>
           <div>
             <CardTitle className="text-3xl">{profileData.name}</CardTitle>
@@ -73,12 +105,15 @@ export default function ProfilePage() {
                         <Badge>
                           {event.pointsEarned} / {event.totalPoints} points
                         </Badge>
-                        <Badge variant="secondary">
-                          {getOrdinal(event.placement ?? 0)} place
-                        </Badge>
+                        {event.placement && event.placement >= 1 && event.placement <= 3 && (
+                          <Badge variant="secondary">
+                            {getOrdinal(event.placement)} place
+                          </Badge>
+                        )}
                       </>
                     )}
                   </CardContent>
+
                 </Card>
               ))}
             </div>
@@ -86,6 +121,5 @@ export default function ProfilePage() {
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }
-

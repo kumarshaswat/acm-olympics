@@ -2,11 +2,11 @@
 
 import * as React from "react"
 import Link from "next/link"
-import { ChevronsUpDown, Home, Settings, Users } from 'lucide-react'
+import { ChevronsUpDown, Home, Layers, Users, BarChart, User } from 'lucide-react'
 
 import { AddEventModal } from "@/components/add-event-modal"
 import { AddStudentModal } from "@/components/add-student-modal"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -18,7 +18,6 @@ import {
 import {
   Sidebar,
   SidebarContent,
-  SidebarFooter,
   SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
@@ -34,18 +33,14 @@ const teams = [
 ]
 
 const navigationItems = [
-  { name: "Dashboard", icon: Home, href: "/Dashboard" },
-  { name: "Atheletes", icon: Users, href: "/atheletes" },
-  { name: "Settings", icon: Settings, href: "/Settings" },
+  { name: "Dashboard", icon: Home, href: "/dashboard" },
+  { name: "Teams", icon: Layers, href: "/teams" },
+  { name: "Athletes", icon: Users, href: "/athletes" },
+  { name: "Profile", icon: User, href: "/profile" },
 ]
 
 export function CustomizableSidebar() {
   const [selectedTeam, setSelectedTeam] = React.useState(teams[0])
-  const [user, setUser] = React.useState({
-    name: "John Doe",
-    email: "jxd123123@example.com",
-    avatar: "/placeholder.svg?height=32&width=32",
-  })
 
   return (
     <Sidebar>
@@ -97,7 +92,7 @@ export function CustomizableSidebar() {
           {navigationItems.map((item) => (
             <SidebarMenuItem key={item.name}>
               <Link href={item.href} passHref legacyBehavior>
-                <SidebarMenuButton as="a">
+                <SidebarMenuButton className="px-4 font-semibold">
                   <item.icon className="mr-2 h-4 w-4" />
                   {item.name}
                 </SidebarMenuButton>
@@ -113,55 +108,17 @@ export function CustomizableSidebar() {
           <SidebarMenuItem>
             <AddStudentModal />
           </SidebarMenuItem>
-        </SidebarMenu>
-      </SidebarContent>
-      <SidebarFooter>
-        <SidebarMenu>
           <SidebarMenuItem>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <SidebarMenuButton
-                  size="lg"
-                  className="w-full justify-between"
-                >
-                  <div className="flex items-center gap-2">
-                    <Avatar className="h-6 w-6">
-                      <AvatarImage src={user.avatar} alt={user.name} />
-                      <AvatarFallback>
-                        {user.name.charAt(0).toUpperCase()}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="flex flex-col items-start text-left text-sm">
-                      <span>{user.name}</span>
-                      <span className="text-xs text-muted-foreground">
-                        {user.email}
-                      </span>
-                    </div>
-                  </div>
-                  <ChevronsUpDown className="h-4 w-4 opacity-50" />
-                </SidebarMenuButton>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent
-                align="start"
-                alignOffset={-5}
-                className="w-[--radix-dropdown-menu-trigger-width]"
-                forceMount
-              >
-                <DropdownMenuLabel>My Account</DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <Link href="/profile">
-                  <DropdownMenuItem>Profile</DropdownMenuItem>
-                </Link>
-                <DropdownMenuItem>Settings</DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <Link href="/#">
-                  <DropdownMenuItem as="a">Log out</DropdownMenuItem>
-                </Link>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <Link href="/result" passHref legacyBehavior>
+              <SidebarMenuButton className="px-4 font-semibold">
+                <BarChart className="mr-2 h-4 w-4" />
+                Manage Results
+              </SidebarMenuButton>
+            </Link>
           </SidebarMenuItem>
         </SidebarMenu>
-      </SidebarFooter>
+      </SidebarContent>
     </Sidebar>
   )
 }
+
